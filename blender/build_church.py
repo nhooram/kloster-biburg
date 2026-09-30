@@ -133,21 +133,33 @@ def bell(t, sl):
 
 BELL_T = (0.0, 0.3, 0.6, 0.9, BELL_K)
 
-def gable_profile(s0, s1, ze, zr):
-    return [(s0, 0), (s1, 0), (s1, ze), ((s0 + s1) / 2, zr), (s0, ze)]
+def gable_profile(s0, s1, ze, zr, kick=False):
+    """House section. kick: the wall tops follow the roof's bell-cast curve (the roof has an even thickness,
+    so its underside curves up at the eave too and the walls must rise with it)."""
+    if not kick:
+        return [(s0, 0), (s1, 0), (s1, ze), ((s0 + s1) / 2, zr), (s0, ze)]
+    sl = (zr - ze) / ((s1 - s0) / 2)
+    ts = [t for t in BELL_T if t > EAVE_OV]   # t: distance inward from the eave tip (the wall is at t = EAVE_OV)
+    right = [(s1, ze + bell(EAVE_OV, sl))] + [(s1 + EAVE_OV - t, ze + sl * (t - EAVE_OV) + bell(t, sl)) for t in ts]
+    left = [(s0 - EAVE_OV + t, ze + sl * (t - EAVE_OV) + bell(t, sl)) for t in reversed(ts)] + [(s0, ze + bell(EAVE_OV, sl))]
+    return [(s0, 0), (s1, 0)] + right + [((s0 + s1) / 2, zr)] + left
 
 def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=None):
-    """Wall + roof slab of a lean-to; y_in against the taller wall."""
-    prism(name, [(y_out, 0), (y_in, 0), (y_in, z_in), (y_out, z_out)], plane, a0, a1)
+    """Wall + roof slab of a lean-to; y_in against the taller wall. Bell-cast eave with an even roof thickness:
+    the slab's underside and the wall top follow the same curve as its top."""
     sgn = 1 if y_in > y_out else -1
     sl = (z_in - z_out) / abs(y_in - y_out)
+    ts = [t for t in BELL_T if t > EAVE_OV]   # t: distance inward from the eave tip (the wall is at t = EAVE_OV)
+    wall_top = [(y_out + sgn * (t - EAVE_OV), z_out + sl * (t - EAVE_OV) + bell(t, sl)) for t in reversed(ts)]
+    prism(name, [(y_out, 0), (y_in, 0), (y_in, z_in)] + wall_top + [(y_out, z_out + bell(EAVE_OV, sl))], plane, a0, a1)
     lo = (y_out - sgn * EAVE_OV, z_out - EAVE_OV * sl); hi = (y_in + sgn * 0.4, z_in + 0.4 * sl)
     top = [(lo[0] + sgn * t, lo[1] + ROOF_T + sl * t + bell(t, sl)) for t in BELL_T]   # bell-cast eave
-    prism(name + "_roof", [(lo[0], lo[1] - 0.1)] + top + [(hi[0], hi[1] + ROOF_T), (hi[0], hi[1] - 0.1)],
+    bottom = [(lo[0] + sgn * t, lo[1] - 0.1 + sl * t + bell(t, sl)) for t in reversed(BELL_T)]
+    prism(name + "_roof", top + [(hi[0], hi[1] + ROOF_T), (hi[0], hi[1] - 0.1)] + bottom,
           plane, a0 - (GABLE_OV if go0 is None else go0), a1 + (GABLE_OV if go1 is None else go1), M_ROOF)
     if sl < 1:  # roof underside flatter than 45 deg: fill under the eave with a 45 deg stone fillet
-        tip = (lo[0] + sgn * 0.02, lo[1] - 0.05 + 0.02 * sl)   # 2 cm inside the eave face
-        wall_hi = (y_out + sgn * 0.05, z_out - 0.05 + 0.05 * sl)
+        tip = (lo[0] + sgn * 0.02, lo[1] - 0.05 + 0.02 * sl + bell(0.02, sl))   # 2 cm inside the eave face
+        wall_hi = (y_out + sgn * 0.05, z_out - 0.05 + 0.05 * sl + bell(EAVE_OV + 0.05, sl))
         wall_lo = (y_out + sgn * 0.05, lo[1] - 0.1 - EAVE_OV - 0.05)
         prism(name + "_eavefillet", [tip, wall_hi, wall_lo], plane, a0 + 0.02, a1)
 
@@ -263,7 +275,10 @@ def bifora(name, frame, uc, sill, face_w, nh):
     sq = lambda q, z: [frame(uc - q, z, nc - q), frame(uc + q, z, nc - q), frame(uc + q, z, nc + q), frame(uc - q, z, nc + q)]
     cw = g / 2 - 0.01                     # capital no wider than the pier between the two arches
     extrude(f"{name}_ccap", sq(r, spring - 0.3), sq(cw, spring - 0.2), M_STONE, C_ADD)        # flared capital
-    extrude(f"{name}_cblk", sq(cw, spring - 0.21), sq(cw, spring + 0.06), M_STONE, C_ADD)     # impost block into the pier
+    # impost block into the pier, its front flush with the face the arches are cut into (niche back, n = -0.22;
+    # 2 mm behind it so the two faces never coincide)
+    blk = lambda z: [frame(uc - cw, z, nc - cw), frame(uc + cw, z, nc - cw), frame(uc + cw, z, -0.222), frame(uc - cw, z, -0.222)]
+    extrude(f"{name}_cblk", blk(spring - 0.21), blk(spring + 0.06), M_STONE, C_ADD)
 
 def taper_cut(name, frame, loop, depth, outside):
     """Cutter whose profile rises 45 deg as it comes out of the wall, so the cut leaves a sloped
@@ -289,7 +304,7 @@ def arch_line(n, pitch, w, h, top_c, slope):
 
 # ================================================================ BUILD
 # --- nave, aisles, transept, choir (walls + roof slabs)
-prism("nave", gable_profile(-NAVE_HW, NAVE_HW, EAVES, RIDGE), "YZ", X_W, X_TC)
+prism("nave", gable_profile(-NAVE_HW, NAVE_HW, EAVES, RIDGE, kick=True), "YZ", X_W, X_TC)
 # The west front's shoulders over the aisle ends have their own roof strip (photos): FACADE_D deep, same top edge
 # against the nave wall (+2 cm, so the two never share faces), ~2.5 deg flatter, so its eave sits ~0.3 m higher
 # and it steps down onto the aisle roof, which runs 0.3 m in under it.
@@ -300,7 +315,7 @@ for s in (-1, 1):
     t = 'N' if s > 0 else 'S'
     leanto(f"aisle_front_{t}", X_W, X_W + FACADE_D, s * AISLE_Y, s * (NAVE_HW - 0.2), SHOULDER_EAVES, AISLE_TOP + 0.02, go1=0)
     leanto(f"aisle_{t}", X_W + FACADE_D - 0.3, X_TW + 0.2, s * AISLE_Y, s * (NAVE_HW - 0.2), AISLE_EAVES, AISLE_TOP, go0=0)
-prism("transept", gable_profile(X_TW, X_TE, EAVES, RIDGE), "XZ", -TR_Y, TR_Y)
+prism("transept", gable_profile(X_TW, X_TE, EAVES, RIDGE, kick=True), "XZ", -TR_Y, TR_Y)
 
 # --- roof of the cross, as ONE shell: (outer envelope) - (inner envelope).
 # Each envelope is the union of two gable blocks (nave+choir, transept). A union of gable blocks gives the right
@@ -310,7 +325,7 @@ OV, FLOOR = EAVE_OV, EAVES - 2.5
 
 def gable_block(name, plane, s0, s1, a0, a1, lift, grow, floor, coll, zr=RIDGE, kick=False):
     """Prism under a gable roof plane raised by `lift`, footprint grown by `grow`, from `floor` up.
-    kick: bell-cast eaves on the top surface (outer envelope only; the underside stays straight)."""
+    kick: bell-cast eaves (used on the outer AND inner envelope, so the roof keeps an even thickness)."""
     sl = (zr - EAVES) / ((s1 - s0) / 2); sc = (s0 + s1) / 2
     e0, e1 = s0 - OV - grow, s1 + OV + grow
     z_edge = zr + lift - sl * (sc - e0)
@@ -323,8 +338,8 @@ def gable_block(name, plane, s0, s1, a0, a1, lift, grow, floor, coll, zr=RIDGE, 
 tmpc = bpy.data.collections.new(COL + "_rooftmp"); root.children.link(tmpc)
 outer = [gable_block("ro_nave", "YZ", -NAVE_HW, NAVE_HW, X_W - GABLE_OV, X_E + GABLE_OV, ROOF_T, 0, FLOOR, tmpc, kick=True),
          gable_block("ro_tr", "XZ", X_TW, X_TE, -TR_Y - GABLE_OV, TR_Y + GABLE_OV, ROOF_T, 0, FLOOR - 0.3, tmpc, kick=True)]
-inner = [gable_block("ri_nave", "YZ", -NAVE_HW, NAVE_HW, X_W - GABLE_OV, X_E + GABLE_OV, -0.1, 0.01, FLOOR - 1, tmpc),
-         gable_block("ri_tr", "XZ", X_TW, X_TE, -TR_Y - GABLE_OV, TR_Y + GABLE_OV, -0.1, 0.01, FLOOR - 1.3, tmpc)]
+inner = [gable_block("ri_nave", "YZ", -NAVE_HW, NAVE_HW, X_W - GABLE_OV, X_E + GABLE_OV, -0.1, 0.01, FLOOR - 1, tmpc, kick=True),
+         gable_block("ri_tr", "XZ", X_TW, X_TE, -TR_Y - GABLE_OV, TR_Y + GABLE_OV, -0.1, 0.01, FLOOR - 1.3, tmpc, kick=True)]
 ci = bpy.data.collections.new(COL + "_rooftmp_in"); tmpc.children.link(ci)
 for o in inner: tmpc.objects.unlink(o); ci.objects.link(o)
 co = bpy.data.collections.new(COL + "_rooftmp_out"); tmpc.children.link(co)
@@ -338,7 +353,7 @@ for c in (ci, co, tmpc):
     for o in list(c.objects): bpy.data.objects.remove(o)
     bpy.data.collections.remove(c)
 
-prism("choir", gable_profile(-NAVE_HW, NAVE_HW, EAVES, RIDGE), "YZ", X_TC, X_E)
+prism("choir", gable_profile(-NAVE_HW, NAVE_HW, EAVES, RIDGE, kick=True), "YZ", X_TC, X_E)
 
 
 # --- side-choir bays between transept and towers (lean-tos)
