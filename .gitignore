@@ -2,3 +2,4 @@
 refs/video/
 __pycache__/
 *.blend1
+docs/img/_*

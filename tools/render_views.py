@@ -23,7 +23,7 @@ stats = {"verts": len(ev.vertices), "faces": len(ev.polygons)}
 sc.render.engine = "BLENDER_WORKBENCH"
 sh = sc.display.shading
 sh.light = "STUDIO"; sh.color_type = "MATERIAL"; sh.show_cavity = True; sh.cavity_type = "BOTH"
-sh.show_shadows = True; sh.show_object_outline = False
+sh.show_shadows = globals().get("SHADOWS", False)   # workbench cast shadows streak on long thin faces; sh.show_object_outline = False
 sc.display.shadow_focus = 0.2
 sc.render.resolution_x, sc.render.resolution_y = 1400, 1000
 sc.render.film_transparent = False

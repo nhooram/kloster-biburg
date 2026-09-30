@@ -1,0 +1,223 @@
+{
+ "plan": {
+  "lod2_area_m2": 880.0,
+  "model_area_m2": 875.5,
+  "iou": 0.984,
+  "sym_diff_m2": 14.2
+ },
+ "heights": {
+  "nave ridge": {
+   "lod2": 20.85,
+   "model": 21.16
+  },
+  "nave roof, mid-slope": {
+   "lod2": 17.77,
+   "model": 18.08
+  },
+  "aisle roof, mid": {
+   "lod2": 8.71,
+   "model": 9.11
+  },
+  "transept ridge": {
+   "lod2": 20.81,
+   "model": 21.16
+  },
+  "choir ridge": {
+   "lod2": 20.67,
+   "model": 21.16
+  },
+  "main apse cone, near tip": {
+   "lod2": 13.92,
+   "model": 16.0
+  },
+  "side apse cone S": {
+   "lod2": 8.71,
+   "model": 10.27
+  },
+  "S tower top": {
+   "lod2": 38.85,
+   "model": 38.71
+  },
+  "sacristy roof": {
+   "lod2": 7.3,
+   "model": 7.69
+  }
+ },
+ "split": [
+  {
+   "piece": "apse_N_copper",
+   "vol_cm3": 0.32,
+   "size_mm": [
+    8.2,
+    16.7,
+    9.4
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": -0.0
+  },
+  {
+   "piece": "apse_S_copper",
+   "vol_cm3": 0.32,
+   "size_mm": [
+    8.2,
+    16.7,
+    9.4
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": -0.0
+  },
+  {
+   "piece": "apse_main_copper",
+   "vol_cm3": 2.92,
+   "size_mm": [
+    16.8,
+    33.9,
+    20.0
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": -0.0
+  },
+  {
+   "piece": "body_stone",
+   "vol_cm3": 912.67,
+   "size_mm": [
+    195.7,
+    108.1,
+    121.6
+   ],
+   "watertight": true,
+   "bodies": 1
+  },
+  {
+   "piece": "helm_N_copper",
+   "vol_cm3": 5.85,
+   "size_mm": [
+    27.8,
+    21.7,
+    40.6
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.0
+  },
+  {
+   "piece": "helm_S_copper",
+   "vol_cm3": 5.85,
+   "size_mm": [
+    27.8,
+    21.7,
+    40.6
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.0
+  },
+  {
+   "piece": "roof_aisle_N_red",
+   "vol_cm3": 2.17,
+   "size_mm": [
+    106.2,
+    18.6,
+    14.1
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.084
+  },
+  {
+   "piece": "roof_aisle_S_red",
+   "vol_cm3": 2.17,
+   "size_mm": [
+    106.2,
+    18.6,
+    14.1
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.084
+  },
+  {
+   "piece": "roof_main_red",
+   "vol_cm3": 8.29,
+   "size_mm": [
+    172.3,
+    96.4,
+    26.3
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.0
+  },
+  {
+   "piece": "roof_sacristy_red",
+   "vol_cm3": 0.78,
+   "size_mm": [
+    38.3,
+    26.4,
+    15.8
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.002
+  },
+  {
+   "piece": "roof_sidechoir_N_red",
+   "vol_cm3": 0.09,
+   "size_mm": [
+    5.6,
+    16.6,
+    20.5
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.203
+  },
+  {
+   "piece": "roof_sidechoir_S_red",
+   "vol_cm3": 0.11,
+   "size_mm": [
+    6.1,
+    19.2,
+    23.3
+   ],
+   "watertight": true,
+   "bodies": 1,
+   "settle_mm": 0.181
+  }
+ ],
+ "files": {
+  "KlosterkircheBiburg_1-250.stl": {
+   "size_mm": [
+    195.7,
+    108.1,
+    158.0
+   ],
+   "vol_cm3": 944.7,
+   "tris": 28914,
+   "watertight": true
+  },
+  "KlosterkircheBiburg_1-250_no-finials.stl": {
+   "size_mm": [
+    195.7,
+    108.1,
+    150.0
+   ],
+   "vol_cm3": 944.6,
+   "tris": 28108,
+   "watertight": true
+  },
+  "KlosterkircheBiburg_1-250_no-sacristy.stl": {
+   "size_mm": [
+    195.7,
+    102.0,
+    158.0
+   ],
+   "vol_cm3": 920.6,
+   "tris": 28870,
+   "watertight": true
+  }
+ }
+}
