@@ -1,0 +1,4 @@
+# large + re-downloadable (yt-dlp, see README)
+refs/video/
+__pycache__/
+*.blend1
