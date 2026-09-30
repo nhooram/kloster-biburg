@@ -267,7 +267,7 @@ def bifora(name, frame, uc, sill, face_w, nh):
     # open the space between the two openings below the springing: the colonnette stands in it
     # (depth / floor offset from the openings' so no cutter faces coincide)
     cut_loop(f"{name}_mid", frame, [(uc - g / 2 - 0.02, o0 - 0.01), (uc + g / 2 + 0.02, o0 - 0.01), (uc + g / 2 + 0.02, spring - 0.05), (uc - g / 2 - 0.02, spring - 0.05)], 0.78, M_DARK)
-    nc, r = -0.45, 0.1                    # colonnette just behind the niche face (capital front 3 cm behind it)
+    nc, r = -0.225 - (g / 2 - 0.01), 0.1  # colonnette set so its capital's top edge is flush (3 mm back) with the arch face
     col = lambda rr, z0, z1, nm: extrude(nm, [frame(a, z0, b) for a, b in circle_loop(uc, nc, rr, 16)],
                                          [frame(a, z1, b) for a, b in circle_loop(uc, nc, rr, 16)], M_STONE, C_ADD)
     col(r + 0.04, o0 - 0.05, o0 + 0.12, f"{name}_cbase")   # radius < g/2: not tangent to the jambs
