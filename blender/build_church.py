@@ -53,6 +53,9 @@ EAVE_OV, GABLE_OV, ROOF_T = 0.35, 0.10, 0.30
 BASE = True           # printable plinth under the building
 FINIALS = globals().get("FINIALS", True)   # tower balls + crosses; False for the no-finial print variant
 SACRISTY = globals().get("SACRISTY", True)  # the low sacristy annex north of the north tower; False = church only
+# colour split build: eave fillets stop 1 cm under the roof underside instead of 5 cm into the slab, so the
+# roof piece (= roof - body) keeps a solid underside and just seats on them
+SPLIT = globals().get("SPLIT", False)
 SEG = 16              # arc resolution
 
 COL = "Biburg"
@@ -144,7 +147,7 @@ def gable_profile(s0, s1, ze, zr, kick=False):
     left = [(s0 - EAVE_OV + t, ze + sl * (t - EAVE_OV) + bell(t, sl)) for t in reversed(ts)] + [(s0, ze + bell(EAVE_OV, sl))]
     return [(s0, 0), (s1, 0)] + right + [((s0 + s1) / 2, zr)] + left
 
-def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=None, fillet_a0=None):
+def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=None, fillet_a0=None, fillet_a1=None):
     """Wall + roof slab of a lean-to; y_in against the taller wall. Bell-cast eave with an even roof thickness:
     the slab's underside and the wall top follow the same curve as its top."""
     sgn = 1 if y_in > y_out else -1
@@ -158,10 +161,13 @@ def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=Non
     prism(name + "_roof", top + [(hi[0], hi[1] + ROOF_T), (hi[0], hi[1] - 0.1)] + bottom,
           plane, a0 - (GABLE_OV if go0 is None else go0), a1 + (GABLE_OV if go1 is None else go1), M_ROOF)
     if sl < 1:  # roof underside flatter than 45 deg: fill under the eave with a 45 deg stone fillet
-        tip = (lo[0] + sgn * 0.02, lo[1] - 0.05 + 0.02 * sl + bell(0.02, sl))   # 2 cm inside the eave face
-        wall_hi = (y_out + sgn * 0.05, z_out - 0.05 + 0.05 * sl + bell(EAVE_OV + 0.05, sl))
         wall_lo = (y_out + sgn * 0.05, lo[1] - 0.1 - EAVE_OV - 0.05)
-        prism(name + "_eavefillet", [tip, wall_hi, wall_lo], plane, a0 + 0.02 if fillet_a0 is None else fillet_a0, a1)
+        if SPLIT:   # follow the bell-cast underside, 1 cm below it, from 2 cm inside the eave face into the wall
+            under = [(lo[0] + sgn * t, lo[1] - 0.11 + sl * t + bell(t, sl)) for t in [0.02] + [t for t in BELL_T if 0.02 < t < EAVE_OV + 0.05] + [EAVE_OV + 0.05]]
+        else:
+            under = [(lo[0] + sgn * 0.02, lo[1] - 0.05 + 0.02 * sl + bell(0.02, sl)),   # 2 cm inside the eave face
+                     (y_out + sgn * 0.05, z_out - 0.05 + 0.05 * sl + bell(EAVE_OV + 0.05, sl))]
+        prism(name + "_eavefillet", under + [wall_lo], plane, a0 + 0.02 if fillet_a0 is None else fillet_a0, a1 if fillet_a1 is None else fillet_a1)
 
 def arc_pts(cx, cy, r, a0, a1, n=SEG):
     return [(cx + r * math.cos(a0 + (a1 - a0) * i / n), cy + r * math.sin(a0 + (a1 - a0) * i / n)) for i in range(n + 1)]
@@ -313,7 +319,8 @@ a_pitch = math.atan((AISLE_TOP - AISLE_EAVES) / (AISLE_Y - NAVE_HW))
 SHOULDER_EAVES = AISLE_TOP - (AISLE_Y - NAVE_HW) * math.tan(a_pitch - math.radians(2.5))   # ~7.6 m
 for s in (-1, 1):
     t = 'N' if s > 0 else 'S'
-    leanto(f"aisle_front_{t}", X_W, X_W + FACADE_D, s * AISLE_Y, s * (NAVE_HW - 0.2), SHOULDER_EAVES, AISLE_TOP + 0.02, go1=0)
+    leanto(f"aisle_front_{t}", X_W, X_W + FACADE_D, s * AISLE_Y, s * (NAVE_HW - 0.2), SHOULDER_EAVES, AISLE_TOP + 0.02, go1=0,
+           fillet_a1=X_W + FACADE_D - 0.1)   # stops short of the aisle roof tucked under it (split clearance)
     # aisle roof + fillet start at the shoulder strip's back edge (2 cm under it): a clean step, no tab below
     leanto(f"aisle_{t}", X_W + FACADE_D - 0.3, X_TW + 0.2, s * AISLE_Y, s * (NAVE_HW - 0.2), AISLE_EAVES, AISLE_TOP,
            go0=-0.28, fillet_a0=X_W + FACADE_D - 0.02)
@@ -437,7 +444,8 @@ if SACRISTY:
     box("sacristy_chimney_cap", 13.64, 14.36, 10.64, 11.36, 9.38, 9.5, M_ROOF)
     # 45 deg stone fillets under the north and east eaves (the 35 deg roof underside is too flat to print)
     lo = SAC_EAVES - SAC_OV * sac_sl
-    fil = [(SAC_OV - 0.02, lo - 0.05 + 0.02 * sac_sl), (-0.05, SAC_EAVES - 0.05 + 0.05 * sac_sl), (-0.05, lo - 0.1 - SAC_OV - 0.05)]
+    dz = -0.06 if SPLIT else 0   # split: 1 cm under the roof underside (see SPLIT)
+    fil = [(SAC_OV - 0.02, lo - 0.05 + dz + 0.02 * sac_sl), (-0.05, SAC_EAVES - 0.05 + dz + 0.05 * sac_sl), (-0.05, lo - 0.1 - SAC_OV - 0.05)]
     prism("sacristy_fillet_N", [(SAC_Y1 + d, z) for d, z in fil], "YZ", sac_cx(SAC_Y1) + 0.1, SAC_X1 + SAC_OV - 0.02)
     prism("sacristy_fillet_E", [(SAC_X1 + d, z) for d, z in fil], "XZ", SAC_YS + 0.02, SAC_Y1 + SAC_OV - 0.02)
 

@@ -7,6 +7,7 @@
 import bpy, bmesh, os, struct
 BUILD = "/home/hooram/code/cad-work/kloster-biburg/blender/build_church.py"
 g = {k: globals()[k] for k in ("SACRISTY", "FINIALS") if k in globals()}   # pass variant switches through
+g["SPLIT"] = True
 exec(open(BUILD).read(), g)
 SCALE = globals().get("SCALE", 250)
 OUTDIR = globals().get("OUTDIR", "/home/hooram/code/cad-work/kloster-biburg/export/split")
@@ -66,12 +67,11 @@ def blockers(tag):
 EXP = blockers("exp")
 
 R, C = g["M_ROOF"], g["M_COPPER"]
-# The 45 deg eave fillets (print supports under the flatter eaves) go with their roof piece in the split: a clean,
-# solid eave on the piece, and no stone ledge left under the red roof on the body.
+# The 45 deg eave fillets (supports between roof underside and wall) stay on the body; the roof pieces seat on them.
 pieces = {  # name: (member part names, blocker keys, material)
     "roof_main_red": (["cross_roof"], ["towers"], R),
-    "roof_aisle_S_red": (["aisle_S_roof", "aisle_front_S_roof", "aisle_S_eavefillet", "aisle_front_S_eavefillet"], ["nave", "transept"], R),
-    "roof_aisle_N_red": (["aisle_N_roof", "aisle_front_N_roof", "aisle_N_eavefillet", "aisle_front_N_eavefillet"], ["nave", "transept"], R),
+    "roof_aisle_S_red": (["aisle_S_roof", "aisle_front_S_roof"], ["nave", "transept"], R),
+    "roof_aisle_N_red": (["aisle_N_roof", "aisle_front_N_roof"], ["nave", "transept"], R),
     "roof_sidechoir_S_red": (["sidebay_-1_roof"], ["towers", "transept", "choir"], R),
     "roof_sidechoir_N_red": (["sidebay_1_roof"], ["towers", "transept", "choir"], R),
     "apse_main_copper": (["apse_roof", "apse_seam*"], ["east"], C),
@@ -79,7 +79,7 @@ pieces = {  # name: (member part names, blocker keys, material)
     "apse_N_copper": (["sapse_1_roof", "sapse_1_seam*"], ["east"], C),
 }
 if g["SACRISTY"]:
-    pieces["roof_sacristy_red"] = (["sacristy_roof", "sacristy_chimney*", "sacristy_fillet*"], ["towers", "transept_core"], R)
+    pieces["roof_sacristy_red"] = (["sacristy_roof", "sacristy_chimney*"], ["towers", "transept_core"], R)
 pegs = {}
 for t, (y0, y1) in (("S", (-TY1, -TY0)), ("N", (TY0, TY1))):
     cx, cy, te = (TX0 + X_E) / 2, (y0 + y1) / 2, g["TOWER_EAVES"]
