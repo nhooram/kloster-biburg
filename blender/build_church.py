@@ -144,7 +144,7 @@ def gable_profile(s0, s1, ze, zr, kick=False):
     left = [(s0 - EAVE_OV + t, ze + sl * (t - EAVE_OV) + bell(t, sl)) for t in reversed(ts)] + [(s0, ze + bell(EAVE_OV, sl))]
     return [(s0, 0), (s1, 0)] + right + [((s0 + s1) / 2, zr)] + left
 
-def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=None):
+def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=None, fillet_a0=None):
     """Wall + roof slab of a lean-to; y_in against the taller wall. Bell-cast eave with an even roof thickness:
     the slab's underside and the wall top follow the same curve as its top."""
     sgn = 1 if y_in > y_out else -1
@@ -161,7 +161,7 @@ def leanto(name, a0, a1, y_out, y_in, z_out, z_in, plane="YZ", go0=None, go1=Non
         tip = (lo[0] + sgn * 0.02, lo[1] - 0.05 + 0.02 * sl + bell(0.02, sl))   # 2 cm inside the eave face
         wall_hi = (y_out + sgn * 0.05, z_out - 0.05 + 0.05 * sl + bell(EAVE_OV + 0.05, sl))
         wall_lo = (y_out + sgn * 0.05, lo[1] - 0.1 - EAVE_OV - 0.05)
-        prism(name + "_eavefillet", [tip, wall_hi, wall_lo], plane, a0 + 0.02, a1)
+        prism(name + "_eavefillet", [tip, wall_hi, wall_lo], plane, a0 + 0.02 if fillet_a0 is None else fillet_a0, a1)
 
 def arc_pts(cx, cy, r, a0, a1, n=SEG):
     return [(cx + r * math.cos(a0 + (a1 - a0) * i / n), cy + r * math.sin(a0 + (a1 - a0) * i / n)) for i in range(n + 1)]
@@ -307,14 +307,16 @@ def arch_line(n, pitch, w, h, top_c, slope):
 prism("nave", gable_profile(-NAVE_HW, NAVE_HW, EAVES, RIDGE, kick=True), "YZ", X_W, X_TC)
 # The west front's shoulders over the aisle ends have their own roof strip (photos): FACADE_D deep, same top edge
 # against the nave wall (+2 cm, so the two never share faces), ~2.5 deg flatter, so its eave sits ~0.3 m higher
-# and it steps down onto the aisle roof, which runs 0.3 m in under it.
+# and it steps down onto the aisle roof behind it.
 FACADE_D = 0.9
 a_pitch = math.atan((AISLE_TOP - AISLE_EAVES) / (AISLE_Y - NAVE_HW))
 SHOULDER_EAVES = AISLE_TOP - (AISLE_Y - NAVE_HW) * math.tan(a_pitch - math.radians(2.5))   # ~7.6 m
 for s in (-1, 1):
     t = 'N' if s > 0 else 'S'
     leanto(f"aisle_front_{t}", X_W, X_W + FACADE_D, s * AISLE_Y, s * (NAVE_HW - 0.2), SHOULDER_EAVES, AISLE_TOP + 0.02, go1=0)
-    leanto(f"aisle_{t}", X_W + FACADE_D - 0.3, X_TW + 0.2, s * AISLE_Y, s * (NAVE_HW - 0.2), AISLE_EAVES, AISLE_TOP, go0=0)
+    # aisle roof + fillet start at the shoulder strip's back edge (2 cm under it): a clean step, no tab below
+    leanto(f"aisle_{t}", X_W + FACADE_D - 0.3, X_TW + 0.2, s * AISLE_Y, s * (NAVE_HW - 0.2), AISLE_EAVES, AISLE_TOP,
+           go0=-0.28, fillet_a0=X_W + FACADE_D - 0.02)
 prism("transept", gable_profile(X_TW, X_TE, EAVES, RIDGE, kick=True), "XZ", -TR_Y, TR_Y)
 
 # --- roof of the cross, as ONE shell: (outer envelope) - (inner envelope).
