@@ -132,9 +132,13 @@ How it's built:
 - The body is the master's own boolean pipeline with the roof and copper parts left out (`tools/split_parts.py`).
 - Each piece is its parts minus the body minus wall blockers.
 - Each helm has a square socket that fits over a peg on the tower top, and keeps a flat bottom to print on.
+- **Print orientation:**
+  - Copper pieces (helms, apse cones) print upright on a flat bottom. The clearance pass trims the eave lip that hung below the seat (0.8 mm on the helms, 0.2 mm on the cones).
+  - The main roof prints upside down on its ridges. The nave, transept and choir ridges are cut flat in one plane, 0.84 mm down, which leaves a 1.2 mm (0.3 m, about a ridge-tile course) wide strip. That gives 324 mm² on the bed. Set it with `RIDGE_FLAT_MM` in `clearance.py`.
+  - These trims are split-only; the one-piece prints keep the sharp ridge and eave lips.
 - The 45° eave fillets stay on the body. In the split build (`SPLIT=True`) they stop 1 cm below the roof underside, so the roof pieces keep a solid underside.
 
-**Clearance** (`tools/clearance.py`): runs offline with manifold3d. Each piece is carved against the body shifted 0.2 mm in ±x, ±y and −z. Every contact that isn't a resting seat gets a 0.2 mm gap: vertical sliding faces, the peg sockets, and anything the body overhangs. The gap is in mm, so it holds at any scale. Use `clearance.py 0.3` for a looser FDM fit or `0.1` for resin.
+**Clearance** (`tools/clearance.py`): runs offline with manifold3d, always on a fresh `split_parts.py` output, because the ridge cut isn't idempotent. Each piece is carved against the body shifted 0.2 mm in ±x, ±y and −z. Every contact that isn't a resting seat gets a 0.2 mm gap: vertical sliding faces, the peg sockets, and anything the body overhangs. The gap is in mm, so it holds at any scale. Use `clearance.py 0.3` for a looser FDM fit or `0.1` for resin.
 
 ![Split sections](docs/img/split_sections.png)
 

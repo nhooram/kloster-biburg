@@ -5,6 +5,7 @@ little. Rewrites export/split/*_copper/_red STLs in place. Usage: uv run --with 
 import sys, glob, numpy as np, trimesh, manifold3d as mf
 
 GAP_MM = float(sys.argv[1]) if len(sys.argv) > 1 else 0.2
+RIDGE_FLAT_MM = 0.84   # main roof prints upside down on its ridges: cut them flat in one plane, 1.2 mm (0.3 m) wide
 SPLIT = sys.argv[2] if len(sys.argv) > 2 else "export/split"
 
 def to_mf(m):
@@ -27,6 +28,14 @@ for f in sorted(glob.glob(f"{SPLIT}/*.stl")):
         main = to_mf(trimesh.load(f"{SPLIT}/roof_main_red_1-250.stl", force="mesh"))
         for off in ((g, 0, 0), (-g, 0, 0), (0, g, 0), (0, -g, 0), (0, 0, -g), (0, 0, 0)):
             after = after - main.translate(off)
+    if "copper" in f:   # print bed face: trim the eave lip that hangs below the flat seat (helms 0.8 mm, cones 0.2 mm)
+        t = to_tm(after)
+        down = t.face_normals[:, 2] < -0.999
+        zs = np.round(t.triangles_center[down, 2], 3)
+        z_seat = max(set(zs), key=lambda z: t.area_faces[down][zs == z].sum())   # largest flat downward face
+        after = after.trim_by_plane((0, 0, 1), z_seat + 1e-3)
+    if "roof_main" in f:
+        after = after.trim_by_plane((0, 0, -1), -(after.bounding_box()[5] - RIDGE_FLAT_MM))
     t = to_tm(after)
     keep = [b for b in t.split(only_watertight=False) if abs(b.volume) > 0.01]   # drop zero-volume slivers at eave corners
     t = trimesh.util.concatenate(keep)
