@@ -207,3 +207,21 @@ All dimensions are constants at the top of `blender/build_church.py`.
 - These are left out: the tower sawtooth friezes, the lion corbels at the gable feet, sculptures, and the figure at the west gable apex.
 - There's one clock, on the south face of the south tower (the one the photos show).
 - In the one-piece prints, the fillet under the west shoulder strip ends 10 cm (0.4 mm) short of the aisle roof, leaving a tiny bridge under that eave.
+
+---
+
+## Credits and third-party material
+
+The reference material in `refs/`, and images derived from it in `analysis/` and `docs/img/cmp_*`, belongs to its authors. It is included here only as modelling reference.
+
+- **LoD2 building data:** Bayerische Vermessungsverwaltung, [geodaten.bayern.de](https://geodaten.bayern.de), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Files: `refs/lod2/`.
+- **Photos** from Wikimedia Commons, [Category: Maria Immaculata (Biburg)](https://commons.wikimedia.org/wiki/Category:Maria_Immaculata_(Biburg)):
+  - `2020_St_Maria_Biburg.jpg` (and the `_a` crop): Stefan Oemisch, CC BY-SA 4.0. The photo overlays `docs/img/cmp_photo2020*.jpg` are derived from it and are shared under the same licence.
+  - `Biburg-Kirche-Maria-Immaculata.jpg`: Elcom.stadler, CC BY-SA 3.0.
+  - `Biburg_Lkr_Kelheim_ehem_Klosterkirche.JPG`: Dede2, public domain.
+  - `Ehem_Kloster_Biburg_…JPG`, `KlosterkircheBiburg2_Niederbayern.JPG`, `Portal_KlosterkircheBiburg_Nieberbayern.JPG`: Dede2, CC0.
+  - `MI_*.jpg`: GFreihalter, CC BY-SA 3.0 (originals named *Biburg (Niederbayern) Maria Immaculata …*).
+- **Drone video frames** in `refs/frames/`, plus the frame crops and `docs/img/cmp_drone_*`. The videos themselves are not included.
+  - [*Kloster Biburg*](https://www.youtube.com/watch?v=HDnqKjjKxTo) by Zsolt Bencze (`drone_autumn_*`, `k1_*`).
+  - [*#OBEN_DROHNE – #Klosterkirche_Biburg*](https://www.youtube.com/watch?v=i7ZxUSmQv6U) by #OBENDROHNE (`drone_winter_*`, `w_*`).
+  - These frames are © their creators. Ask, and they will be removed.
